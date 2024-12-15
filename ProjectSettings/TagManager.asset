@@ -15,7 +15,7 @@ TagManager:
   - 
   - 
   - 
-  - 
+  - BackgroundUI
   - 
   - 
   - 
@@ -40,4 +40,16 @@ TagManager:
   m_SortingLayers:
   - name: Default
     uniqueID: 0
+    locked: 0
+  - name: TransparentFX
+    uniqueID: 2830936845
+    locked: 0
+  - name: Ignore Raycast
+    uniqueID: 3137324179
+    locked: 0
+  - name: UI
+    uniqueID: 1067568225
+    locked: 0
+  - name: BackgroundUI
+    uniqueID: 1289183079
     locked: 0
