@@ -8,18 +8,17 @@ using TMPro;
 
 public class MenuUIHandler : MonoBehaviour
 {
-    public static string playerName;
-    public InputField playerInputField;
+    
 
     // Start is called before the first frame update
     void Start()
     {
-        playerInputField = GetComponent<InputField>();
+        
     }
 
     public void StartGame()
     {
-        SetPlayerName();
+        Player.Instance.SetPlayerName();
         SceneManager.LoadScene(1);
     }
 
@@ -36,11 +35,5 @@ public class MenuUIHandler : MonoBehaviour
     public void ShowScores()
     {
 
-    }
-
-    public void SetPlayerName()
-    {
-        playerName = playerInputField.text;
-        Debug.Log($"{playerName}");
     }
 }
