@@ -8,7 +8,6 @@ public class Player : MonoBehaviour
 {
     public static Player Instance;
     public string playerName;
-    public TMP_InputField playerInputField;
 
     private void Awake()
     {
@@ -22,8 +21,8 @@ public class Player : MonoBehaviour
         DontDestroyOnLoad(gameObject);
     }
 
-    public void SetPlayerName()
+    public void SetPlayerName(string input)
     {
-        playerName = playerInputField.text;
+        playerName = input;
     }
 }

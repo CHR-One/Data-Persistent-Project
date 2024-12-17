@@ -9,6 +9,7 @@ public class MainManager : MonoBehaviour
     public Brick BrickPrefab;
     public int LineCount = 6;
     public Rigidbody Ball;
+    private Player player;
 
     public Text ScoreText;
     public GameObject GameOverText;
@@ -22,6 +23,8 @@ public class MainManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        player = GameObject.Find("Player").GetComponent<Player>();
+        ScoreText.text = $"{player.playerName}'s score: ";
         const float step = 0.6f;
         int perLine = Mathf.FloorToInt(4.0f / step);
         
@@ -65,7 +68,7 @@ public class MainManager : MonoBehaviour
     void AddPoint(int point)
     {
         m_Points += point;
-        ScoreText.text = $"Score : {m_Points}";
+        ScoreText.text = $"{player.playerName}'s score: {m_Points}";
     }
 
     public void GameOver()
