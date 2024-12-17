@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using System.IO;
 
 public class MainManager : MonoBehaviour
 {
@@ -12,6 +13,7 @@ public class MainManager : MonoBehaviour
     private Player player;
 
     public Text ScoreText;
+    public Text bestScoreText;
     public GameObject GameOverText;
     
     private bool m_Started = false;
@@ -23,22 +25,7 @@ public class MainManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        player = GameObject.Find("Player").GetComponent<Player>();
-        ScoreText.text = $"{player.playerName}'s score: ";
-        const float step = 0.6f;
-        int perLine = Mathf.FloorToInt(4.0f / step);
-        
-        int[] pointCountArray = new [] {1,1,2,2,5,5};
-        for (int i = 0; i < LineCount; ++i)
-        {
-            for (int x = 0; x < perLine; ++x)
-            {
-                Vector3 position = new Vector3(-1.5f + step * x, 2.5f + i * 0.3f, 0);
-                var brick = Instantiate(BrickPrefab, position, Quaternion.identity);
-                brick.PointValue = pointCountArray[i];
-                brick.onDestroyed.AddListener(AddPoint);
-            }
-        }
+        InitGame();        
     }
 
     private void Update()
@@ -63,6 +50,32 @@ public class MainManager : MonoBehaviour
                 SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
             }
         }
+
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            BackToMenu();
+        }
+    }
+
+    private void InitGame()
+    {
+        player = GameObject.Find("Player").GetComponent<Player>();
+        ScoreText.text = $"{player.playerName}'s score: ";
+        LoadBestScore();
+        const float step = 0.6f;
+        int perLine = Mathf.FloorToInt(4.0f / step);
+
+        int[] pointCountArray = new[] { 1, 1, 2, 2, 5, 5 };
+        for (int i = 0; i < LineCount; ++i)
+        {
+            for (int x = 0; x < perLine; ++x)
+            {
+                Vector3 position = new Vector3(-1.5f + step * x, 2.5f + i * 0.3f, 0);
+                var brick = Instantiate(BrickPrefab, position, Quaternion.identity);
+                brick.PointValue = pointCountArray[i];
+                brick.onDestroyed.AddListener(AddPoint);
+            }
+        }
     }
 
     void AddPoint(int point)
@@ -75,5 +88,36 @@ public class MainManager : MonoBehaviour
     {
         m_GameOver = true;
         GameOverText.SetActive(true);
+    }
+
+    public void BackToMenu()
+    {
+        SceneManager.LoadScene(0);
+    }
+
+
+    [System.Serializable]
+    class SaveData
+    {
+        public string name;
+        public int bestScore;
+    }
+
+    private void SaveScore(string player, int score)
+    {
+        SaveData playerData = new SaveData();
+        playerData.name = player;
+        playerData.bestScore = score;
+        string json = JsonUtility.ToJson(playerData);
+        File.WriteAllText(Application.persistentDataPath + "/highscores.json", json);
+    }
+
+    private void LoadBestScore()
+    {
+        // Check if hiscores.json exists
+
+        //if it exists, load the best score
+
+        //if it does not exist, set the best score to 0 or 'no scores, yet!'
     }
 }
