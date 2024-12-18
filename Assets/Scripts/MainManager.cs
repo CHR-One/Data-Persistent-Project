@@ -14,6 +14,7 @@ public class MainManager : MonoBehaviour
 
     public Text ScoreText;
     public Text bestScoreText;
+    public int bestScoreValue = 0;
     public GameObject GameOverText;
     
     private bool m_Started = false;
@@ -82,6 +83,12 @@ public class MainManager : MonoBehaviour
     {
         m_Points += point;
         ScoreText.text = $"{player.playerName}'s score: {m_Points}";
+
+        if (m_Points > bestScoreValue)
+        {
+            bestScoreValue = m_Points;
+            bestScoreText.text = $"Best score: {player.playerName} {bestScoreValue}";
+        }
     }
 
     public void GameOver()
@@ -100,24 +107,34 @@ public class MainManager : MonoBehaviour
     class SaveData
     {
         public string name;
-        public int bestScore;
+        public int score;
     }
 
     private void SaveScore(string player, int score)
     {
         SaveData playerData = new SaveData();
         playerData.name = player;
-        playerData.bestScore = score;
+        playerData.score = score;
         string json = JsonUtility.ToJson(playerData);
         File.WriteAllText(Application.persistentDataPath + "/highscores.json", json);
     }
 
     private void LoadBestScore()
     {
-        // Check if hiscores.json exists
+        //Retrieve highscore.json
+        string highscoresPath = Application.persistentDataPath + "/highscores.json";
 
-        //if it exists, load the best score
-
-        //if it does not exist, set the best score to 0 or 'no scores, yet!'
+        // Check if hiscores.json exists. If it exists, load the best score
+        if (File.Exists(highscoresPath))
+        {
+            string json = File.ReadAllText(highscoresPath);
+            SaveData highscoresData = JsonUtility.FromJson<SaveData>(json);
+            bestScoreValue = highscoresData.score;
+            bestScoreText.text = $"Best score : {highscoresData.name} {bestScoreValue}";
+        }
+        else
+        {
+            bestScoreText.text = $"Best score: {bestScoreValue}";
+        }
     }
 }
