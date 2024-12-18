@@ -16,7 +16,9 @@ public class MainManager : MonoBehaviour
     public Text bestScoreText;
     public int bestScoreValue = 0;
     public GameObject GameOverText;
-    
+    private List<SaveData> scoreList;
+    private int maxScores = 8;
+
     private bool m_Started = false;
     private int m_Points;
     
@@ -126,7 +128,10 @@ public class MainManager : MonoBehaviour
         SaveData playerData = new SaveData();
         playerData.name = player;
         playerData.score = score;
-        string json = JsonUtility.ToJson(playerData);
+
+        //add the new score to the list
+        scoreList.Add(playerData);
+        string json = JsonUtility.ToJson(scoreList);
         File.WriteAllText(Application.persistentDataPath + "/highscores.json", json);
     }
 
@@ -139,9 +144,12 @@ public class MainManager : MonoBehaviour
         if (File.Exists(highscoresPath))
         {
             string json = File.ReadAllText(highscoresPath);
-            SaveData highscoresData = JsonUtility.FromJson<SaveData>(json);
-            bestScoreValue = highscoresData.score;
-            bestScoreText.text = $"Best score : {highscoresData.name} {bestScoreValue}";
+            List<SaveData> highscoresData = JsonUtility.FromJson<List<SaveData>>(json);
+
+            //Retrieve the best score
+            SaveData bestPlayer = highscoresData[0];
+            bestScoreValue = bestPlayer.score;
+            bestScoreText.text = $"Best score : {bestPlayer.name} {bestScoreValue}";
         }
         else
         {
