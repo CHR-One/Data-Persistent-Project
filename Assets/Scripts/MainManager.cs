@@ -60,9 +60,14 @@ public class MainManager : MonoBehaviour
 
     private void InitGame()
     {
+        //Retrieve player name and show it in the score text
         player = GameObject.Find("Player").GetComponent<Player>();
-        ScoreText.text = $"{player.playerName}'s score: ";
+        ScoreText.text = $"{player.playerName}'s score: 0";
+
+        //Load highscore, if presente
         LoadBestScore();
+
+        //Fill the board with bricks
         const float step = 0.6f;
         int perLine = Mathf.FloorToInt(4.0f / step);
 
@@ -84,10 +89,11 @@ public class MainManager : MonoBehaviour
         m_Points += point;
         ScoreText.text = $"{player.playerName}'s score: {m_Points}";
 
+        //Automatically change the best score text if the player points reach it
         if (m_Points > bestScoreValue)
         {
-            bestScoreValue = m_Points;
-            bestScoreText.text = $"Best score: {player.playerName} {bestScoreValue}";
+            int bestScoreValueTemp = m_Points;
+            bestScoreText.text = $"Best score: {player.playerName} {bestScoreValueTemp}";
         }
     }
 
@@ -95,6 +101,11 @@ public class MainManager : MonoBehaviour
     {
         m_GameOver = true;
         GameOverText.SetActive(true);
+
+        if (m_Points >= bestScoreValue)
+        {
+            SaveScore(player.playerName, m_Points);
+        }
     }
 
     public void BackToMenu()
