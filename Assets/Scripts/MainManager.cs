@@ -65,6 +65,7 @@ public class MainManager : MonoBehaviour
         //Retrieve player name and show it in the score text
         player = GameObject.Find("Player").GetComponent<Player>();
         ScoreText.text = $"{player.playerName}'s score: 0";
+        scoreList = new List<SaveData>();
 
         //Load highscore, if presente
         LoadBestScore();
@@ -119,18 +120,20 @@ public class MainManager : MonoBehaviour
     [System.Serializable]
     class SaveData
     {
-        public string name;
-        public int score;
+        public string Name { get; set; }
+        public int Score { get; set; }
+
+        public SaveData(string playerName, int playerScore)
+        {
+            this.Name = playerName;
+            this.Score = playerScore;
+        }
     }
 
     private void SaveScore(string player, int score)
     {
-        SaveData playerData = new SaveData();
-        playerData.name = player;
-        playerData.score = score;
-
         //add the new score to the list
-        scoreList.Add(playerData);
+        scoreList.Add(new SaveData(player, score));
         string json = JsonUtility.ToJson(scoreList);
         File.WriteAllText(Application.persistentDataPath + "/highscores.json", json);
     }
@@ -147,9 +150,16 @@ public class MainManager : MonoBehaviour
             List<SaveData> highscoresData = JsonUtility.FromJson<List<SaveData>>(json);
 
             //Retrieve the best score
-            SaveData bestPlayer = highscoresData[0];
-            bestScoreValue = bestPlayer.score;
-            bestScoreText.text = $"Best score : {bestPlayer.name} {bestScoreValue}";
+            if (highscoresData.Count > 0)
+            {
+                SaveData bestPlayer = highscoresData[0];
+                bestScoreValue = bestPlayer.Score;
+                bestScoreText.text = $"Best score : {bestPlayer.Name} {bestScoreValue}";
+            }
+            else
+            {
+                bestScoreText.text = $"Best score: {bestScoreValue}";
+            }
         }
         else
         {
