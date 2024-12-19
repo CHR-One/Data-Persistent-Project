@@ -16,6 +16,7 @@ public class MainManager : MonoBehaviour
     public Text bestScoreText;
     public int bestScoreValue = 0;
     public GameObject GameOverText;
+
     private List<SaveData> scoreList;
     private int maxScores = 8;
 
@@ -28,7 +29,7 @@ public class MainManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        InitGame();        
+        InitGame();
     }
 
     private void Update()
@@ -65,9 +66,8 @@ public class MainManager : MonoBehaviour
         //Retrieve player name and show it in the score text
         player = GameObject.Find("Player").GetComponent<Player>();
         ScoreText.text = $"{player.playerName}'s score: 0";
-        scoreList = new List<SaveData>();
 
-        //Load highscore, if presente
+        //Load highscore, if present
         LoadBestScore();
 
         //Fill the board with bricks
@@ -120,8 +120,8 @@ public class MainManager : MonoBehaviour
     [System.Serializable]
     class SaveData
     {
-        public string Name { get; set; }
-        public int Score { get; set; }
+        public string Name;
+        public int Score;
 
         public SaveData(string playerName, int playerScore)
         {
@@ -132,14 +132,19 @@ public class MainManager : MonoBehaviour
 
     private void SaveScore(string player, int score)
     {
+        SaveData newScore = new SaveData(player, score);
+
         //add the new score to the list
-        scoreList.Add(new SaveData(player, score));
+        scoreList.Add(newScore);
         string json = JsonUtility.ToJson(scoreList);
         File.WriteAllText(Application.persistentDataPath + "/highscores.json", json);
     }
 
     private void LoadBestScore()
     {
+        //Initialize the score list
+        scoreList = new List<SaveData>();
+
         //Retrieve highscore.json
         string highscoresPath = Application.persistentDataPath + "/highscores.json";
 
@@ -147,12 +152,12 @@ public class MainManager : MonoBehaviour
         if (File.Exists(highscoresPath))
         {
             string json = File.ReadAllText(highscoresPath);
-            List<SaveData> highscoresData = JsonUtility.FromJson<List<SaveData>>(json);
+            scoreList = JsonUtility.FromJson<List<SaveData>>(json);
 
             //Retrieve the best score
-            if (highscoresData.Count > 0)
+            if (scoreList.Count > 0)
             {
-                SaveData bestPlayer = highscoresData[0];
+                SaveData bestPlayer = scoreList[0];
                 bestScoreValue = bestPlayer.Score;
                 bestScoreText.text = $"Best score : {bestPlayer.Name} {bestScoreValue}";
             }
