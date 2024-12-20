@@ -19,6 +19,7 @@ public class MainManager : MonoBehaviour
     public GameObject GameOverText;
 
     private List<SaveData> scoreList;
+    private int maxScores = 8;
 
     private bool m_Started = false;
     private int m_Points;
@@ -44,7 +45,7 @@ public class MainManager : MonoBehaviour
     {
         public List<SaveData> Highscore;
         private int maxScores = 8;
-
+        
         public SaveDataList()
         {
             this.Highscore = new List<SaveData>(maxScores);        
@@ -152,11 +153,33 @@ public class MainManager : MonoBehaviour
 
     private void SaveScore(string player, int score)
     {
-        SaveData newScore = new(player, score);
+        if (scoreList.Count <= maxScores)
+        {
+            foreach (SaveData item in scoreList)
+            {
+                if (item.Score < score)
+                {
+                    if (scoreList.IndexOf(item) < maxScores - 1)
+                    {
+                        int index = scoreList.IndexOf(item);
+                        scoreList.Insert(index - 1, new SaveData(player, score));
+                        break;
+                    }
+                    else
+                    {
+                        scoreList.Remove(item);
+                        scoreList.Insert(maxScores - 1, new SaveData(player, score));
+                    }
+                    
+                }
+            }
+
+        }
+
         SaveDataList newScoreList = new();
 
         //add the new score to the list
-        newScoreList.Highscore.Add(newScore);
+        newScoreList.Highscore = scoreList;
         string json = JsonUtility.ToJson(newScoreList);
         File.WriteAllText(Application.persistentDataPath + "/highscores.json", json);
     }
@@ -175,13 +198,11 @@ public class MainManager : MonoBehaviour
             string json = File.ReadAllText(highscoresPath);
             SaveDataList tempList = JsonUtility.FromJson<SaveDataList>(json);
             scoreList = tempList.Highscore;
-            Debug.Log($"scoreList.Count: {scoreList.Count}");
 
             //Retrieve the best score
             if (scoreList.Count > 0)
             {                
                 SaveData bestPlayer = scoreList.ElementAt(0);
-                Debug.Log($"bestPlayer: {bestPlayer.Name}, {bestPlayer.Score}");
                 bestScoreValue = bestPlayer.Score;
                 bestScoreText.text = $"Best score : {bestPlayer.Name} {bestScoreValue}";
             }
