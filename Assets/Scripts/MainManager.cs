@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using System.IO;
+using System.Linq;
 
 public class MainManager : MonoBehaviour
 {
@@ -18,14 +19,38 @@ public class MainManager : MonoBehaviour
     public GameObject GameOverText;
 
     private List<SaveData> scoreList;
-    private int maxScores = 8;
 
     private bool m_Started = false;
     private int m_Points;
     
     private bool m_GameOver = false;
 
-    
+
+    [System.Serializable]
+    class SaveData
+    {
+        public string Name;
+        public int Score;
+
+        public SaveData(string playerName, int playerScore)
+        {
+            this.Name = playerName;
+            this.Score = playerScore;
+        }
+    }
+
+    [System.Serializable]
+    class SaveDataList
+    {
+        public List<SaveData> Highscore;
+        private int maxScores = 8;
+
+        public SaveDataList()
+        {
+            this.Highscore = new List<SaveData>(maxScores);        
+        }
+    }
+
     // Start is called before the first frame update
     void Start()
     {
@@ -38,13 +63,7 @@ public class MainManager : MonoBehaviour
         {
             if (Input.GetKeyDown(KeyCode.Space))
             {
-                m_Started = true;
-                float randomDirection = Random.Range(-1.0f, 1.0f);
-                Vector3 forceDir = new Vector3(randomDirection, 1, 0);
-                forceDir.Normalize();
-
-                Ball.transform.SetParent(null);
-                Ball.AddForce(forceDir * 2.0f, ForceMode.VelocityChange);
+                StartGame();
             }
         }
         else if (m_GameOver)
@@ -71,9 +90,24 @@ public class MainManager : MonoBehaviour
         LoadBestScore();
 
         //Fill the board with bricks
+        FillBoard();
+    }
+
+    private void StartGame()
+    {
+        m_Started = true;
+        float randomDirection = Random.Range(-1.0f, 1.0f);
+        Vector3 forceDir = new Vector3(randomDirection, 1, 0);
+        forceDir.Normalize();
+
+        Ball.transform.SetParent(null);
+        Ball.AddForce(forceDir * 2.0f, ForceMode.VelocityChange);
+    }
+
+    private void FillBoard()
+    {
         const float step = 0.6f;
         int perLine = Mathf.FloorToInt(4.0f / step);
-
         int[] pointCountArray = new[] { 1, 1, 2, 2, 5, 5 };
         for (int i = 0; i < LineCount; ++i)
         {
@@ -116,27 +150,14 @@ public class MainManager : MonoBehaviour
         SceneManager.LoadScene(0);
     }
 
-
-    [System.Serializable]
-    class SaveData
-    {
-        public string Name;
-        public int Score;
-
-        public SaveData(string playerName, int playerScore)
-        {
-            this.Name = playerName;
-            this.Score = playerScore;
-        }
-    }
-
     private void SaveScore(string player, int score)
     {
-        SaveData newScore = new SaveData(player, score);
+        SaveData newScore = new(player, score);
+        SaveDataList newScoreList = new();
 
         //add the new score to the list
-        scoreList.Add(newScore);
-        string json = JsonUtility.ToJson(scoreList);
+        newScoreList.Highscore.Add(newScore);
+        string json = JsonUtility.ToJson(newScoreList);
         File.WriteAllText(Application.persistentDataPath + "/highscores.json", json);
     }
 
@@ -152,12 +173,15 @@ public class MainManager : MonoBehaviour
         if (File.Exists(highscoresPath))
         {
             string json = File.ReadAllText(highscoresPath);
-            scoreList = JsonUtility.FromJson<List<SaveData>>(json);
+            SaveDataList tempList = JsonUtility.FromJson<SaveDataList>(json);
+            scoreList = tempList.Highscore;
+            Debug.Log($"scoreList.Count: {scoreList.Count}");
 
             //Retrieve the best score
             if (scoreList.Count > 0)
-            {
-                SaveData bestPlayer = scoreList[0];
+            {                
+                SaveData bestPlayer = scoreList.ElementAt(0);
+                Debug.Log($"bestPlayer: {bestPlayer.Name}, {bestPlayer.Score}");
                 bestScoreValue = bestPlayer.Score;
                 bestScoreText.text = $"Best score : {bestPlayer.Name} {bestScoreValue}";
             }
