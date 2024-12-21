@@ -17,8 +17,9 @@ public class MainManager : MonoBehaviour
     public Text bestScoreText;
     public int bestScoreValue = 0;
     public GameObject GameOverText;
+    private GameSettings GameSettings;
 
-    private List<SaveData> scoreList;
+    public List<SaveData> scoreList;
     private int maxScores = 8;
 
     private bool m_Started = false;
@@ -28,7 +29,7 @@ public class MainManager : MonoBehaviour
 
 
     [System.Serializable]
-    class SaveData
+    public class SaveData
     {
         public string Name;
         public int Score;
@@ -41,7 +42,7 @@ public class MainManager : MonoBehaviour
     }
 
     [System.Serializable]
-    class SaveDataList
+    public class SaveDataList
     {
         public List<SaveData> Highscore;
         private int maxScores = 8;
@@ -85,7 +86,10 @@ public class MainManager : MonoBehaviour
     {
         //Retrieve player name and show it in the score text
         player = GameObject.Find("Player").GetComponent<Player>();
+        GameSettings = GameObject.Find("GameSettings").GetComponent<GameSettings>();
         ScoreText.text = $"{player.playerName}'s score: 0";
+        //Retrieve the game settings
+        GameSettings.Load();
 
         //Load highscore, if present
         LoadBestScore();
@@ -166,7 +170,7 @@ public class MainManager : MonoBehaviour
         File.WriteAllText(Application.persistentDataPath + "/highscores.json", json);
     }
 
-    private void LoadBestScore()
+    public void LoadBestScore()
     {
         //Initialize the score list
         scoreList = new List<SaveData>();
