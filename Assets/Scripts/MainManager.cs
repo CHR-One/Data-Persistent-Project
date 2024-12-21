@@ -129,9 +129,8 @@ public class MainManager : MonoBehaviour
 
         //Automatically change the best score text if the player points reach it
         if (m_Points > bestScoreValue)
-        {
-            int bestScoreValueTemp = m_Points;
-            bestScoreText.text = $"Best score: {player.playerName} {bestScoreValueTemp}";
+        {            
+            bestScoreText.text = $"Best score: {player.playerName} {m_Points}";
         }
     }
 
@@ -139,11 +138,7 @@ public class MainManager : MonoBehaviour
     {
         m_GameOver = true;
         GameOverText.SetActive(true);
-
-        if (m_Points >= bestScoreValue)
-        {
-            SaveScore(player.playerName, m_Points);
-        }
+        SaveScore(player.playerName, m_Points);
     }
 
     public void BackToMenu()
@@ -152,34 +147,21 @@ public class MainManager : MonoBehaviour
     }
 
     private void SaveScore(string player, int score)
-    {
-        if (scoreList.Count <= maxScores)
-        {
-            foreach (SaveData item in scoreList)
-            {
-                if (item.Score < score)
-                {
-                    if (scoreList.IndexOf(item) < maxScores - 1)
-                    {
-                        int index = scoreList.IndexOf(item);
-                        scoreList.Insert(index - 1, new SaveData(player, score));
-                        break;
-                    }
-                    else
-                    {
-                        scoreList.Remove(item);
-                        scoreList.Insert(maxScores - 1, new SaveData(player, score));
-                    }
-                    
-                }
-            }
+    {        
+        SaveDataList newScoreList = new();
+        newScoreList.Highscore = new List<SaveData>();
+        newScoreList.Highscore = scoreList;
+        newScoreList.Highscore.Add(new SaveData(player, score));
 
+        //Sort the list by score
+        newScoreList.Highscore = newScoreList.Highscore.OrderByDescending(x => x.Score).ToList();
+
+        //If the list is bigger than maxScores, remove the last element
+        if (newScoreList.Highscore.Count > maxScores)
+        {
+            newScoreList.Highscore.RemoveAt(maxScores);
         }
 
-        SaveDataList newScoreList = new();
-
-        //add the new score to the list
-        newScoreList.Highscore = scoreList;
         string json = JsonUtility.ToJson(newScoreList);
         File.WriteAllText(Application.persistentDataPath + "/highscores.json", json);
     }
