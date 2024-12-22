@@ -3,25 +3,24 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
 using TMPro;
+using UnityEngine.SceneManagement;
 
 public class HighScores : MonoBehaviour
 {
-    public MainManager manager;
-    public List<MainManager.SaveData> scoreList;
+    public ScoreManager scoreManager;
     private GameObject fieldName, fieldScore;
     // Start is called before the first frame update
     void Start()
     {
-        string highscoresPath = Application.persistentDataPath + "/highscores.json";
-        if (File.Exists(highscoresPath))
-        {
-            string json = File.ReadAllText(highscoresPath);
-            MainManager.SaveDataList saveDataList = JsonUtility.FromJson<MainManager.SaveDataList>(json);
-            scoreList = saveDataList.Highscore;
+        scoreManager = GameObject.Find("ScoreManager").GetComponent<ScoreManager>();
+        scoreManager.LoadScores();
 
-            foreach (var item in scoreList)
+        string highscoresPath = Application.persistentDataPath + "/highscores.json";
+        if (scoreManager.scoreList.Count > 0)
+        {
+            foreach (var item in scoreManager.scoreList)
             {
-                int suffix = scoreList.IndexOf(item) + 1;
+                int suffix = scoreManager.scoreList.IndexOf(item) + 1;
                 fieldName = GameObject.Find("Name" + suffix);
                 fieldScore = GameObject.Find("Score" + suffix);
                 fieldName.GetComponent<TextMeshProUGUI>().text = item.Name;
@@ -33,4 +32,13 @@ public class HighScores : MonoBehaviour
             Debug.Log("No highscores found");
         }
     }
+
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            SceneManager.LoadScene(0);
+        }
+    }
 }
+    

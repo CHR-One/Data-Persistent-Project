@@ -9,49 +9,17 @@ using System.Linq;
 public class MainManager : MonoBehaviour
 {
     public Brick BrickPrefab;
-    public int LineCount = 6;
     public Rigidbody Ball;
-    private Player player;
-
+    public Player player;
     public Text ScoreText;
     public Text bestScoreText;
     public int bestScoreValue = 0;
     public GameObject GameOverText;
     private GameSettings GameSettings;
-
-    public List<SaveData> scoreList;
-    private int maxScores = 8;
-
+    private ScoreManager scoreManager;
     private bool m_Started = false;
-    private int m_Points;
-    
+    private int m_Points;    
     private bool m_GameOver = false;
-
-
-    [System.Serializable]
-    public class SaveData
-    {
-        public string Name;
-        public int Score;
-
-        public SaveData(string playerName, int playerScore)
-        {
-            this.Name = playerName;
-            this.Score = playerScore;
-        }
-    }
-
-    [System.Serializable]
-    public class SaveDataList
-    {
-        public List<SaveData> Highscore;
-        private int maxScores = 8;
-        
-        public SaveDataList()
-        {
-            this.Highscore = new List<SaveData>(maxScores);        
-        }
-    }
 
     // Start is called before the first frame update
     void Start()
@@ -84,15 +52,29 @@ public class MainManager : MonoBehaviour
 
     private void InitGame()
     {
-        //Retrieve player name and show it in the score text
+        //Retrieve persistent objects
         player = GameObject.Find("Player").GetComponent<Player>();
         GameSettings = GameObject.Find("GameSettings").GetComponent<GameSettings>();
-        ScoreText.text = $"{player.playerName}'s score: 0";
+        scoreManager = GameObject.Find("ScoreManager").GetComponent<ScoreManager>();
+
         //Retrieve the game settings
         GameSettings.Load();
 
-        //Load highscore, if present
-        LoadBestScore();
+        //Show the best score and the player's score        
+        ScoreText.text = $"{player.playerName}'s score: 0";
+
+        scoreManager.LoadScores();
+        
+
+        if (scoreManager.scoreList.Count > 0)
+        {
+            bestScoreValue = scoreManager.scoreList.ElementAt(0).Score;
+            bestScoreText.text = $"Best score: {scoreManager.scoreList.ElementAt(0).Name} {bestScoreValue}";
+        }
+        else
+        {
+            bestScoreText.text = "Best score: 0";
+        }
 
         //Fill the board with bricks
         FillBoard();
@@ -101,12 +83,12 @@ public class MainManager : MonoBehaviour
     private void StartGame()
     {
         m_Started = true;
-        float randomDirection = Random.Range(-1.0f, 1.0f);
+        float randomDirection = Random.Range(-GameSettings.RangeDirection, GameSettings.RangeDirection);
         Vector3 forceDir = new Vector3(randomDirection, 1, 0);
         forceDir.Normalize();
 
         Ball.transform.SetParent(null);
-        Ball.AddForce(forceDir * 2.0f, ForceMode.VelocityChange);
+        Ball.AddForce(forceDir * GameSettings.BallSpeed, ForceMode.VelocityChange);
     }
 
     private void FillBoard()
@@ -114,7 +96,7 @@ public class MainManager : MonoBehaviour
         const float step = 0.6f;
         int perLine = Mathf.FloorToInt(4.0f / step);
         int[] pointCountArray = new[] { 1, 1, 2, 2, 5, 5 };
-        for (int i = 0; i < LineCount; ++i)
+        for (int i = 0; i < GameSettings.LineCount; ++i)
         {
             for (int x = 0; x < perLine; ++x)
             {
@@ -142,64 +124,11 @@ public class MainManager : MonoBehaviour
     {
         m_GameOver = true;
         GameOverText.SetActive(true);
-        SaveScore(player.playerName, m_Points);
+        scoreManager.SaveScore(player.playerName, m_Points);
     }
 
     public void BackToMenu()
     {
         SceneManager.LoadScene(0);
-    }
-
-    private void SaveScore(string player, int score)
-    {        
-        SaveDataList newScoreList = new();
-        newScoreList.Highscore = new List<SaveData>();
-        newScoreList.Highscore = scoreList;
-        newScoreList.Highscore.Add(new SaveData(player, score));
-
-        //Sort the list by score
-        newScoreList.Highscore = newScoreList.Highscore.OrderByDescending(x => x.Score).ToList();
-
-        //If the list is bigger than maxScores, remove the last element
-        if (newScoreList.Highscore.Count > maxScores)
-        {
-            newScoreList.Highscore.RemoveAt(maxScores);
-        }
-
-        string json = JsonUtility.ToJson(newScoreList);
-        File.WriteAllText(Application.persistentDataPath + "/highscores.json", json);
-    }
-
-    public void LoadBestScore()
-    {
-        //Initialize the score list
-        scoreList = new List<SaveData>();
-
-        //Retrieve highscore.json
-        string highscoresPath = Application.persistentDataPath + "/highscores.json";
-
-        // Check if hiscores.json exists. If it exists, load the best score
-        if (File.Exists(highscoresPath))
-        {
-            string json = File.ReadAllText(highscoresPath);
-            SaveDataList tempList = JsonUtility.FromJson<SaveDataList>(json);
-            scoreList = tempList.Highscore;
-
-            //Retrieve the best score
-            if (scoreList.Count > 0)
-            {                
-                SaveData bestPlayer = scoreList.ElementAt(0);
-                bestScoreValue = bestPlayer.Score;
-                bestScoreText.text = $"Best score : {bestPlayer.Name} {bestScoreValue}";
-            }
-            else
-            {
-                bestScoreText.text = $"Best score: {bestScoreValue}";
-            }
-        }
-        else
-        {
-            bestScoreText.text = $"Best score: {bestScoreValue}";
-        }
     }
 }
