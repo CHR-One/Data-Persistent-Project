@@ -83,12 +83,12 @@ public class MainManager : MonoBehaviour
     private void StartGame()
     {
         m_Started = true;
-        float randomDirection = Random.Range(-GameSettings.RangeDirection, GameSettings.RangeDirection);
+        float randomDirection = Random.Range(-GameSettings.settings.RangeDirection, GameSettings.settings.RangeDirection);
         Vector3 forceDir = new Vector3(randomDirection, 1, 0);
         forceDir.Normalize();
 
         Ball.transform.SetParent(null);
-        Ball.AddForce(forceDir * GameSettings.BallSpeed, ForceMode.VelocityChange);
+        Ball.AddForce(forceDir * GameSettings.settings.BallSpeed, ForceMode.VelocityChange);
     }
 
     private void FillBoard()
@@ -96,7 +96,7 @@ public class MainManager : MonoBehaviour
         const float step = 0.6f;
         int perLine = Mathf.FloorToInt(4.0f / step);
         int[] pointCountArray = new[] { 1, 1, 2, 2, 5, 5 };
-        for (int i = 0; i < GameSettings.LineCount; ++i)
+        for (int i = 0; i < GameSettings.settings.LineCount; ++i)
         {
             for (int x = 0; x < perLine; ++x)
             {
